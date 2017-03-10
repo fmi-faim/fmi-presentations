@@ -1,0 +1,280 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>KNIME @ FMI Basel</title>
+
+		<link rel="stylesheet" href="../reveal.js/css/reveal.css">
+		<link rel="stylesheet" href="../reveal.js/css/theme/white.css">
+
+		<!-- Custom style -->
+		<link rel="stylesheet" href="css/style.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="../reveal.js/lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? '../reveal.js/css/print/pdf.css' : '../reveal.js/css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h3>Image Segmentation,<br>Single-Molecule Tracking,<br>and Data Analysis</h3>
+					<p class="auth">Jan Eglinger</p>
+					<p><img alt="FMI Logo" src="img/FMI_logo_rgb_def.jpg"></p>
+					<p class="auth">
+						Friedrich Miescher Institute for Biomedical Research (FMI)<br>
+						Facility for Advanced Imaging and Microscopy (FAIM)<br>
+						Basel, Switzerland
+
+					</p>
+					<p class="auth">( <img src="img/gravatar.png" width="20" class="plain"> <code style="font-weight: bold;">imagejan</code> on <a href="https://github.com/imagejan">github</a> and the <a href="http://forum.imagej.net/users/imagejan">ImageJ forum</a> )</p>
+					<p class="auth"><code><a href="https://github.com/fmi-faim">https://github.com/fmi-faim</a></code></p>
+				</section>
+				<section>
+					<h3>The SciJava ecosystem</h3>
+					<p><img class="plain" src="img/scijava-pledge.png"></p>
+				</section>
+				<section>
+					<h3>Example use cases</h3>
+					<ol>
+						<li>Chromatin dynamics in budding yeast</li>
+						<li>Regulation of gene expression</li>
+						<li>Gene regulation in <i>C. elegans</i> development</li>
+					</ol>
+				</section>
+				<section>
+					<h3>Chromatin Dynamics<br>in Budding Yeast</h3>
+					<p class="stretch"><img class="plain" src="img/hauermic_workflow.svg"></p>
+					<p class="ack">
+						<img class="plain" src="img/Hauer_Michael.jpg">
+						<br>Michi<br>Hauer
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Seeber_Andrew.jpg">
+						<br>Andrew<br>Seeber
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Gasser_Susan_M.jpg">
+						<br>Susan<br>Gasser
+					</p>
+					<p class="footnote">
+						Hauer <i>et al.</i> 2017<br>Nature Structural and Molecular Biology<br>
+						<a href="http://doi.org/10.1038/nsmb.3347">http://doi.org/10.1038/nsmb.3347</a>
+						(<a href="https://www.researchgate.net/publication/314465690_Relative_MSD_-_KNIME_Workflow">Supplement</a>)
+					</p>
+				</section>
+				<section>
+					<p class="running-title">Chromatin dynamics</p>
+					<h3>Strategy</h3>
+					<p><br></p>
+					<ul>
+						<li>Track single spot per cell in the nucleus</li>
+						<li>Filter only max quality spot per frame</li>
+						<li>Calculate Mean Square Displacement (MSD)</li>
+						<li>Plot MSD curve grouped by condition</li>
+					</ul>
+					<p class="stretch"></p>
+					<p class="footnote"><a href="hauermic-workflow.html">Workflow overview</a></p>
+				</section>
+				<section>
+					<h3>Regulation of Gene Expression</h3>
+					<p class="stretch"><img class="plain" data-src="img/voigfran/mRNA_Tracking.png"></p>
+					<p class="ack">
+						<img class="plain" src="img/Voigt_Franka.jpg">
+						<br>Franka<br>Voigt
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Chao_Jeffrey_A.jpg">
+						<br>Jeff<br>Chao
+					</p>
+				</section>
+				<section>
+					<p class="running-title">Gene expression</p>
+					<h3>Strategy</h3>
+					<p><br></p>
+					<ul>
+						<li>Tracking of mRNAs in 2 channels</li>
+						<li>Restrict tracking to cytoplasm only</li>
+						<li>Classify double-positive track segments</li>
+						<li>Compute diffusion characteristics</li>
+					</ul>
+					<p class="stretch"></p>
+					<p class="footnote"><a href="voigfran-workflow.html">Workflow overview</a></p>
+				</section>
+				<section>
+					<h3>Gene Regulation<br>in C. elegans Development</h3>
+					<p class="stretch"><img class="plain" data-src="img/hausyann/WormStackSplit.png" height="300px"></p>
+					<p class="ack">
+						<img class="plain" src="img/Hauser_Yannick.jpg">
+						<br>Yannick<br>Hauser
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Grosshans_Helge.jpg">
+						<br>Helge<br>Grosshans
+					</p>
+				</section>
+				<section>
+					<h3>Gene Regulation<br>in C. elegans Development</h3>
+					<p class="stretch"><img class="plain" data-src="img/hausyann/WormMovieSplitSmall.png" height="300px"></p>
+					<p class="ack">
+						<img class="plain" src="img/Hauser_Yannick.jpg">
+						<br>Yannick<br>Hauser
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Grosshans_Helge.jpg">
+						<br>Helge<br>Grosshans
+					</p>
+				</section>
+				<section>
+					<p class="running-title">Gene regulation</p>
+					<h3>Input data</h3>
+					<p><br></p>
+					<table style="font-size: 0.6em">
+						<tbody>
+							<tr>
+								<td>Bit depth</td>
+								<td align="right">16</td>
+							</tr>
+							<tr>
+								<td>x</td>
+								<td align="right">1024</td>
+							</tr>
+							<tr>
+								<td>y</td>
+								<td align="right">1024</td>
+							</tr>
+							<tr>
+								<td>z</td>
+								<td align="right">23</td>
+							</tr>
+							<tr>
+								<td>Channels</td>
+								<td align="right">2</td>
+							</tr>
+							<tr>
+								<td>Frames</td>
+								<td align="right">313</td>
+							</tr>
+							<tr>
+								<td>Positions</td>
+								<td align="right">27</td>
+							</tr>
+						</tbody>
+					</table>
+					<p class="fragment stretch">One dataset of 0.75 TB per weekend</p>
+				</section>
+				<section>
+					<p class="running-title">Gene regulation</p>
+					<h3>Strategy</h3>
+					<p><br></p>
+					<ul>
+						<li>Segment worm from background
+							<ul>
+								<li>Machine learning (ilastik Pixel Classification)</li>
+							</ul>
+						</li>
+						<li>Get intensity profile over worm length
+							<ul>
+								<li>ImageJ2 Plugin</li>
+							</ul>
+						</li>
+						<li>Quantify marker dynamics during worm growth
+							<ul>
+								<li>R View</li>
+							</ul>
+						</li>
+					</ul>
+					<p class="stretch"></p>
+					<p class="footnote"><a href="hausyann-workflow.html">Workflow Overview</a></p>
+				</section>
+				<section>
+					<h3>Outlook</h3>
+					<ul>
+						<li></li>
+					</ul>
+				</section>
+				<section>
+					<h2>Thanks!</h2>
+					<p class="ack">
+						<img class="plain" src="img/Hauser_Yannick.jpg">
+						<br>Yannick<br>Hauser
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Grosshans_Helge.jpg">
+						<br>Helge<br>Grosshans
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Voigt_Franka.jpg">
+						<br>Franka<br>Voigt
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Chao_Jeffrey_A.jpg">
+						<br>Jeff<br>Chao
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Hauer_Michael.jpg">
+						<br>Michi<br>Hauer
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Seeber_Andrew.jpg">
+						<br>Andrew<br>Seeber
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Gasser_Susan_M.jpg">
+						<br>Susan<br>Gasser
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/hornm.jpg">
+						<br>Martin<br>Horn
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/tibuch.png">
+						<br>Tim-Oliver<br>Buchholz
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/gab1one.jpg">
+						<br>Gabriel<br>Einsdorf
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/dietzc.jpg">
+						<br>Christian<br>Dietz
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Curtis_Rueden.png">
+						<br>Curtis<br>Rueden
+					</p>
+					<h4>...and the ImageJ and KNIME communities</h4>
+				</section>
+			</div>
+		</div>
+
+		<script src="../reveal.js/lib/js/head.min.js"></script>
+		<script src="../reveal.js/js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+				transition: 'none',
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: '../reveal.js/plugin/markdown/marked.js' },
+					{ src: '../reveal.js/plugin/markdown/markdown.js' },
+					{ src: '../reveal.js/plugin/notes/notes.js', async: true },
+					{ src: '../reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
