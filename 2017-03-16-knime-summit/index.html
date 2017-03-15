@@ -1,0 +1,467 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>KNIME @ FMI Basel</title>
+
+		<link rel="stylesheet" href="../reveal.js/css/reveal.css">
+		<link rel="stylesheet" href="../reveal.js/css/theme/white.css">
+
+		<!-- Custom style -->
+		<link rel="stylesheet" href="css/style.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="../reveal.js/lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? '../reveal.js/css/print/pdf.css' : '../reveal.js/css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h3>Image Segmentation,<br>Single-Molecule Tracking,<br>and Data Analysis</h3>
+					<p class="auth">Jan Eglinger</p>
+					<p></p>
+					<p class="auth">
+						Friedrich Miescher Institute for Biomedical Research (FMI)<br>
+						Facility for Advanced Imaging and Microscopy (FAIM)<br>
+						Basel, Switzerland
+
+					</p>
+					<p class="auth">( <img src="img/gravatar.png" width="20" class="plain"> <code style="font-weight: bold;">imagejan</code> on <a href="https://github.com/imagejan">github</a> and the <a href="http://forum.imagej.net/users/imagejan">ImageJ forum</a> )</p>
+					<p class="auth"><code><a href="https://github.com/fmi-faim">https://github.com/fmi-faim</a></code></p>
+					<p class="ack"><img alt="FMI Logo" src="img/FMI_logo_rgb_def.jpg"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(affiliated with the <a href="https://www.unibas.ch">University of Basel</a> --
+					part of the <a href="https://www.nibr.com/">Novartis Institutes of BioMedical Research (NIBR)</a>)</p>
+				</section>
+				<section>
+					<h3>The SciJava ecosystem</h3>
+					<p><img class="plain" src="img/scijava-pledge.png"></p>
+				</section>
+				<section>
+					<h3>Example use cases</h3>
+					<ol>
+						<li>Chromatin dynamics in budding yeast</li>
+						<li>Regulation of gene expression</li>
+						<li>Gene regulation in <i>C. elegans</i> development</li>
+					</ol>
+				</section>
+				<section>
+					<h3>Chromatin Dynamics<br>in Budding Yeast</h3>
+					<p class="stretch"><img class="plain" src="img/hauermic_workflow_x.svg"></p>
+					<p class="ack">
+						<img class="plain" src="img/Hauer_Michael.jpg">
+						<br>Michi<br>Hauer
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Seeber_Andrew.jpg">
+						<br>Andrew<br>Seeber
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Gasser_Susan_M.jpg">
+						<br>Susan<br>Gasser
+					</p>
+					<p class="footnote">
+						Hauer <i>et al.</i> 2017<br>Nature Structural and Molecular Biology<br>
+						<a href="http://doi.org/10.1038/nsmb.3347">http://doi.org/10.1038/nsmb.3347</a>
+						(<a href="https://www.researchgate.net/publication/314465690_Relative_MSD_-_KNIME_Workflow">Supplement</a>)
+					</p>
+				</section>
+				<section>
+					<p class="running-title">Chromatin dynamics</p>
+					<h3>Strategy</h3>
+					<p><br></p>
+					<ul>
+						<li>Track single spot per cell in the nucleus</li>
+						<li>Filter only max quality spot per frame</li>
+						<li>Calculate Mean Square Displacement (MSD)</li>
+						<li>Plot MSD curve grouped by condition</li>
+					</ul>
+					<p class="stretch"></p>
+					<p class="footnote"><a href="hauermic-workflow.html">Workflow overview</a></p>
+				</section>
+				<section data-background=#444444>
+						<pre><code class="java" data-trim data-noescape>
+@Plugin(type = Command.class, headless = true, menuPath = "FMI>Track Spots (Subpixel localization)")
+public class TrackMateWrapper implements Command {
+	@Parameter
+	private LogService log;
+
+	@Parameter(label = "Input image")
+	private ImagePlus imp;
+
+	@Parameter(label = "Frame interval")
+	private double frameInterval;
+
+	@Parameter(label = "ROI mask", required = false)
+	private ImagePlus mask;
+
+	@Parameter(label = "Spot radius")
+	private double spotSize = DetectorKeys.DEFAULT_RADIUS;
+
+	@Parameter(label = "Spot quality threshold")
+	private double spotThreshold = DetectorKeys.DEFAULT_THRESHOLD;
+
+	@Parameter(label = "Linking max distance")
+	private double linkingMaxDistance = TrackerKeys.DEFAULT_LINKING_MAX_DISTANCE;
+
+	@Parameter(label = "Gap closing max distance")
+	private double closingMaxDistance = TrackerKeys.DEFAULT_GAP_CLOSING_MAX_DISTANCE;
+
+	@Parameter(label = "Gap closing max frame gap")
+	private int frameGap = TrackerKeys.DEFAULT_GAP_CLOSING_MAX_FRAME_GAP;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private int nSpotsFound;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private int nTracksFound;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private double[] spotID;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private double[] spotQuality;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private double[] trackID;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private double[] frame;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private double[] t;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private double[] x;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private double[] y;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private double[] z;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private double[] intensity;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private double[] radius;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private double[] estDiameter;
+
+	@Override
+	public void run() {
+		// Set mask ROI on input image
+		if (mask != null) {
+			mask.getProcessor().setThreshold(1.0, 255.0,
+					ImageProcessor.NO_LUT_UPDATE);
+			Roi roi = ThresholdToSelection.run(mask);
+			imp.setRoi(roi);
+		}
+
+		// Create TrackMate instance with settings
+		Model model = new Model();
+		Settings settings = new Settings();
+
+		settings.setFrom(imp);
+		settings.dt = frameInterval;
+		settings.detectorFactory = new LogDetectorFactory<>();
+
+		settings.detectorSettings = settings.detectorFactory
+				.getDefaultSettings();
+		settings.detectorSettings.put(
+				DetectorKeys.KEY_DO_SUBPIXEL_LOCALIZATION, true);
+		settings.detectorSettings.put(DetectorKeys.KEY_RADIUS, spotSize);
+		settings.detectorSettings
+				.put(DetectorKeys.KEY_THRESHOLD, spotThreshold);
+
+		settings.trackerFactory = new SparseLAPTrackerFactory();
+		settings.trackerSettings = LAPUtils.getDefaultLAPSettingsMap();
+		settings.trackerSettings.put(TrackerKeys.KEY_LINKING_MAX_DISTANCE,
+				linkingMaxDistance);
+		settings.trackerSettings.put(TrackerKeys.KEY_GAP_CLOSING_MAX_DISTANCE,
+				closingMaxDistance);
+		settings.trackerSettings.put(TrackerKeys.KEY_GAP_CLOSING_MAX_FRAME_GAP,
+				frameGap);
+		settings.addSpotAnalyzerFactory(new SpotIntensityAnalyzerFactory<>());
+		settings.addSpotAnalyzerFactory(new SpotRadiusEstimatorFactory<>());
+		settings.addTrackAnalyzer(new TrackDurationAnalyzer());
+
+		TrackMate trackmate = new TrackMate(model, settings);
+
+		// Process (spot detection and tracking)
+		if (!trackmate.checkInput()) {
+			log.error("Configuration error: " + trackmate.getErrorMessage());
+			return;
+		}
+		if (!trackmate.process()) {
+			log.error("Processing error: " + trackmate.getErrorMessage());
+			return;
+		}
+
+		// Prepare lists to collect results
+		ArrayList<Double> spotIDlist = new ArrayList<>();
+		ArrayList<Double> qualityList = new ArrayList<>();
+		ArrayList<Double> trackIDlist = new ArrayList<>();
+		ArrayList<Double> durationList = new ArrayList<>();
+		ArrayList<Double> frameList = new ArrayList<>();
+		ArrayList<Double> tList = new ArrayList<>();
+		ArrayList<Double> xList = new ArrayList<>();
+		ArrayList<Double> yList = new ArrayList<>();
+		ArrayList<Double> zList = new ArrayList<>();
+		ArrayList<Double> intensityList = new ArrayList<>();
+		ArrayList<Double> radiusList = new ArrayList<>();
+		ArrayList<Double> diameterList = new ArrayList<>();
+
+		TrackModel trackModel = model.getTrackModel();
+		FeatureModel featureModel = model.getFeatureModel();
+		for (Integer tID : trackModel.trackIDs(false)) {
+			for (Spot spot : trackModel.trackSpots(tID)) {
+				spotIDlist.add((double) spot.ID());
+				qualityList.add(spot.getFeature(Spot.QUALITY));
+				trackIDlist.add((double) tID);
+				durationList.add(featureModel.getTrackFeature(tID,
+						TrackDurationAnalyzer.TRACK_DURATION));
+				frameList.add(spot.getFeature(Spot.FRAME));
+				tList.add(spot.getFeature(Spot.POSITION_T));
+				xList.add(spot.getDoublePosition(0));
+				yList.add(spot.getDoublePosition(1));
+				zList.add(spot.getDoublePosition(2));
+				intensityList
+						.add(spot
+								.getFeature(SpotIntensityAnalyzerFactory.TOTAL_INTENSITY));
+				radiusList.add(spot.getFeature(Spot.RADIUS));
+				diameterList
+						.add(spot
+								.getFeature(SpotRadiusEstimatorFactory.ESTIMATED_DIAMETER));
+			}
+		}
+
+		// Get results (spot list with trackIDs)
+		spotID = Doubles.toArray(spotIDlist);
+		spotQuality = Doubles.toArray(qualityList);
+		trackID = Doubles.toArray(trackIDlist);
+		frame = Doubles.toArray(frameList);
+		t = Doubles.toArray(tList);
+		x = Doubles.toArray(xList);
+		y = Doubles.toArray(yList);
+		z = Doubles.toArray(zList);
+		intensity = Doubles.toArray(intensityList);
+		radius = Doubles.toArray(radiusList);
+		estDiameter = Doubles.toArray(diameterList);
+
+		// Return summary values
+		nSpotsFound = model.getSpots().getNSpots(false);
+		nTracksFound = model.getTrackModel().nTracks(false);
+	}
+}</code></pre>
+						<img class="fragment plain" class="floating" style="position: absolute; left: 55%; top: 10%" data-src="img/voigfran/TrackMateDialog.png">
+				</section>
+				<section>
+					<h3>Regulation of Gene Expression</h3>
+					<p class="stretch"><img class="plain" data-src="img/voigfran/mRNA_Tracking.png"></p>
+					<p class="ack">
+						<img class="plain" src="img/Voigt_Franka.jpg">
+						<br>Franka<br>Voigt
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Chao_Jeffrey_A.jpg">
+						<br>Jeff<br>Chao
+					</p>
+				</section>
+				<section>
+					<p class="running-title">Gene expression</p>
+					<h3>Strategy</h3>
+					<p><br></p>
+					<ul>
+						<li>Tracking of mRNAs in 2 channels</li>
+						<li>Restrict tracking to cytoplasm only</li>
+						<li>Classify double-positive track segments</li>
+						<li>Compute diffusion characteristics</li>
+					</ul>
+					<p class="stretch"></p>
+					<p class="footnote"><a href="voigfran-workflow.html">Workflow overview</a></p>
+				</section>
+				<section>
+					<h3>Gene Regulation<br>in C. elegans Development</h3>
+					<p class="stretch"><img class="plain" data-src="img/hausyann/WormStackSplit.png" height="300px"></p>
+					<p class="ack">
+						<img class="plain" src="img/Hauser_Yannick.jpg">
+						<br>Yannick<br>Hauser
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Grosshans_Helge.jpg">
+						<br>Helge<br>Grosshans
+					</p>
+				</section>
+				<section>
+					<h3>Gene Regulation<br>in C. elegans Development</h3>
+					<p class="stretch"><img class="plain" data-src="img/hausyann/WormMovieSplitSmall.png" height="300px"></p>
+					<p class="ack">
+						<img class="plain" src="img/Hauser_Yannick.jpg">
+						<br>Yannick<br>Hauser
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Grosshans_Helge.jpg">
+						<br>Helge<br>Grosshans
+					</p>
+				</section>
+				<section>
+					<p class="running-title">Gene regulation</p>
+					<h3>Input data</h3>
+					<p><br></p>
+					<table style="font-size: 0.6em">
+						<tbody>
+							<tr>
+								<td>Bit depth</td>
+								<td align="right">16</td>
+							</tr>
+							<tr>
+								<td>x</td>
+								<td align="right">1024</td>
+							</tr>
+							<tr>
+								<td>y</td>
+								<td align="right">1024</td>
+							</tr>
+							<tr>
+								<td>z</td>
+								<td align="right">23</td>
+							</tr>
+							<tr>
+								<td>Channels</td>
+								<td align="right">2</td>
+							</tr>
+							<tr>
+								<td>Frames</td>
+								<td align="right">313</td>
+							</tr>
+							<tr>
+								<td>Positions</td>
+								<td align="right">27</td>
+							</tr>
+						</tbody>
+					</table>
+					<p class="fragment stretch">One dataset of 0.75 TB per weekend</p>
+				</section>
+				<section>
+					<p class="running-title">Gene regulation</p>
+					<h3>Strategy</h3>
+					<p><br></p>
+					<ul>
+						<li>Segment worm from background
+							<ul>
+								<li>Machine learning (ilastik Pixel Classification)</li>
+							</ul>
+						</li>
+						<li>Get intensity profile over worm length
+							<ul>
+								<li>ImageJ2 Plugin</li>
+							</ul>
+						</li>
+						<li>Quantify marker dynamics during worm growth
+							<ul>
+								<li>R View</li>
+							</ul>
+						</li>
+					</ul>
+					<p class="stretch"></p>
+					<p class="footnote"><a href="hausyann-workflow.html">Workflow Overview</a></p>
+				</section>
+				<section>
+					<h4>Some more comments</h4>
+					<ul class="fragment">
+						<li>Is there any daily Mac OSX user in the KNIME team?</li>
+						<li>Did you ever try to create a new workflow in a workspace on a network share from Windows?</li>
+					</ul>
+					<p></p>
+					<h4 class="fragment">What's cooking?</h4>
+					<ul class="fragment">
+						<li>Update site for FMI-developed ImageJ/KNIME plugins</li>
+						<li>Looking forward to using guided analytics (on the desktop and via WebPortal)!</li>
+					</ul>
+				</section>
+				<section>
+					<h2>Thanks!</h2>
+					<p class="ack">
+						<img class="plain" src="img/Hauser_Yannick.jpg">
+						<br>Yannick<br>Hauser
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Grosshans_Helge.jpg">
+						<br>Helge<br>Grosshans
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Voigt_Franka.jpg">
+						<br>Franka<br>Voigt
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Chao_Jeffrey_A.jpg">
+						<br>Jeff<br>Chao
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Hauer_Michael.jpg">
+						<br>Michi<br>Hauer
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Seeber_Andrew.jpg">
+						<br>Andrew<br>Seeber
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Gasser_Susan_M.jpg">
+						<br>Susan<br>Gasser
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/hornm.jpg">
+						<br>Martin<br>Horn
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/tibuch.png">
+						<br>Tim-Oliver<br>Buchholz
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/gab1one.jpg">
+						<br>Gabriel<br>Einsdorf
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/dietzc.jpg">
+						<br>Christian<br>Dietz
+					</p>
+					<p class="ack">
+						<img class="plain" src="img/Curtis_Rueden.png">
+						<br>Curtis<br>Rueden
+					</p>
+					<h4>...and the ImageJ and KNIME communities</h4>
+				</section>
+			</div>
+		</div>
+
+		<script src="../reveal.js/lib/js/head.min.js"></script>
+		<script src="../reveal.js/js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+				transition: 'none',
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: '../reveal.js/plugin/markdown/marked.js' },
+					{ src: '../reveal.js/plugin/markdown/markdown.js' },
+					{ src: '../reveal.js/plugin/notes/notes.js', async: true },
+					{ src: '../reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>

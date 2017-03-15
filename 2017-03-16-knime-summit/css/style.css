@@ -1,0 +1,59 @@
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+  text-transform: none;
+  font-variant: small-caps;
+}
+
+.plain {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  vertical-align: middle !important;
+}
+
+img[alt="FMI Logo"] {
+	width: 180px;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+.auth {
+	font-size: 0.5em !important;
+}
+
+.ack {
+  float: left;
+  font-size: 14px !important;
+  padding-left: 0.3em !important;
+  padding-right: 0.3em !important;
+}
+
+.footnote {
+  float: right;
+  font-size: 14px !important;
+  padding-left: 0.3em !important;
+  padding-right: 0.3em !important;
+}
+.ack img {
+  height: 80px;
+  /*filter: grayscale(80%);*/
+  filter: grayscale(80%);
+}
+
+.reveal pre {
+  font-size: 0.35em;
+  font-weight: bold;
+}
+
+.running-title {
+	font-size: 0.3em !important;
+	font-weight: bold !important;
+	float: left;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+}

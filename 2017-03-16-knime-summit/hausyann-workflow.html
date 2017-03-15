@@ -1,0 +1,152 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="../reveal.js/css/reveal.css">
+		<link rel="stylesheet" href="../reveal.js/css/theme/white.css">
+
+		<!-- Custom style -->
+		<link rel="stylesheet" href="css/style.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="../reveal.js/lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? '../reveal.js/css/print/pdf.css' : '../reveal.js/css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section></section>
+				<section>
+					<section></section>
+					<section>
+						<p><img class="plain" data-src="img/hausyann/ImageViewerProbMap.png"></p>
+					</section>
+				</section>
+				<section>
+					<section>
+					</section>
+					<section>
+						<p><img class="plain" data-src="img/hausyann/ImageTableSegmentation.png"></p>
+					</section>
+				</section>
+				<section>
+					<section></section>
+					<section data-background=#444444>
+						<pre><code data-trim data-noescape>
+@Plugin(type = Command.class, headless = true, menuPath = "FMI>Straighten Image")
+public class MaskStraightener implements Command {
+	@Parameter(label = "Input image")
+	private ImagePlus imp;
+
+	@Parameter(label = "Object mask")
+	private ImagePlus mask;
+
+	@Parameter(label = "Line Width")
+	private int lineWidth;
+
+	@Parameter(label = "Step size")
+	private int stepSize;
+
+	@Parameter(type = ItemIO.OUTPUT)
+	private ImagePlus result;
+
+	@Override
+	public void run() {
+		ByteProcessor maskIp = mask.getProcessor().convertToByteProcessor(true);
+		maskIp.invert();
+		maskIp.skeletonize();
+		maskIp.invert();
+
+		// Initialize AnalyzeSkeleton_
+		AnalyzeSkeleton_ skel = new AnalyzeSkeleton_();
+		AnalyzeSkeleton_.calculateShortestPath = true;
+		skel.setup("", new ImagePlus("Skeleton", maskIp));
+
+		// Perform analysis in silent mode
+		skel.run(AnalyzeSkeleton_.NONE, false, true, null, true, false);
+
+		// Read the results
+		ArrayList<Point>[] sppoints = skel.getShortestPathPoints();
+
+		// Create polyline ROI by averaging pairs of points
+		Polygon poly = new Polygon();
+		for (int i = 0; i <= sppoints[0].size() - stepSize; i += stepSize) {
+			int x = sppoints[0].get(i).x;
+			int y = sppoints[0].get(i).y;
+			poly.addPoint(x, y);
+		}
+		poly.addPoint(sppoints[0].get(sppoints[0].size() - 1).x,
+				sppoints[0].get(sppoints[0].size() - 1).y);
+		PolygonRoi pRoi = new PolygonRoi(poly, Roi.POLYLINE);
+
+		// Create straightened image for kymograph etc.
+		imp.setRoi(pRoi);
+		Straightener st = new Straightener();
+		ImageProcessor ip = st.straightenLine(imp, lineWidth);
+
+		result = new ImagePlus("Straightened", ip);
+	}
+}</code></pre>
+						<img class="fragment plain" class="floating" style="position: absolute; left: 55%; top: 10%" data-src="img/hausyann/Straighten_Image_Dialog.png">
+					</section>
+					<section>
+						<p><img class="plain" data-src="img/hausyann/ImageViewerStraightened.png"></p>
+					</section>					
+				</section>
+				<section>
+
+				</section>
+				<section>
+					<section>
+					</section>
+					<section>
+						<p><img class="plain" data-src="img/hausyann/ImageViewerKymograph.png"></p>
+					</section>					
+				</section>
+				<section>
+					<section>
+					</section>
+					<section>
+						<p><img class="plain" data-src="img/hausyann/RViewPlot.png"></p>
+					</section>
+				</section>
+			</div>
+		</div>
+
+		<script src="../reveal.js/lib/js/head.min.js"></script>
+		<script src="../reveal.js/js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: false,
+				transition: 'slide',
+				// Parallax background image
+			    parallaxBackgroundImage: 'img/hausyann_workflow.svg', // e.g. "https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg"
+
+			    // Parallax background size
+    			parallaxBackgroundSize: '10267px 1104px', // CSS syntax, e.g. "2100px 900px" - currently only pixels are supported (don't use % or auto)
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: '../reveal.js/plugin/markdown/marked.js' },
+					{ src: '../reveal.js/plugin/markdown/markdown.js' },
+					{ src: '../reveal.js/plugin/notes/notes.js', async: true },
+					{ src: '../reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
